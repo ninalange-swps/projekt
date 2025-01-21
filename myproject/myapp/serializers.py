@@ -22,6 +22,14 @@ class PersonSerializer(serializers.Serializer):
     # np. team=Team({id}) lub wcześniejszym stworzeniu nowej instancji tej klasy
     team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
 
+    def validate_name(self, value):
+
+        if not value.istitle():
+            raise serializers.ValidationError(
+                "Nazwa osoby powinna rozpoczynać się wielką literą!",
+            )
+        return value
+
     # przesłonięcie metody create() z klasy serializers.Serializer
     def create(self, validated_data):
         return Person.objects.create(**validated_data)
