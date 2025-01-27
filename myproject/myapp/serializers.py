@@ -57,9 +57,10 @@ class PersonSerializer(serializers.Serializer):
 
 
 class StanowiskoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Stanowisko
-        fields = '__all__'
+    id = serializers.IntegerField(read_only=True)
+    nazwa = serializers.CharField(max_length = 80)
+    opis = serializers.CharField()
+
 
     def create(self, validated_data):
         return Stanowisko.objects.create(**validated_data)  
