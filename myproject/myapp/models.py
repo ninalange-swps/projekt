@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
 
 # Create your models here.
 MONTHS = models.IntegerChoices('Miesiace', 'Styczen Luty Marzec Kwiecien Maj Czerwiec Lipiec Sierpien Wrzesien Pazdziernik Listopad Grudzien')
@@ -41,7 +42,7 @@ class Osoba(models.Model):
     nazwisko = models.CharField(max_length=60, blank = False, null = False )
     plec = models.IntegerField(choices = PLCIE.choices, default = PLCIE.choices[2][0])
     stanowisko = models.ForeignKey('Stanowisko', on_delete = models.CASCADE)
-    data_dodania = models.DateTimeField(auto_now_add = True, editable = False)
+    data_dodania = models.DateField(default = now)
 
     
     def __str__(self):

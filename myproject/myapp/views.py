@@ -2,8 +2,9 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Person, Team
-from .serializers import PersonSerializer
+from .models import Osoba, Person, Team
+from .serializers import OsobaSerializer, PersonSerializer
+
 
 # określamy dostępne metody żądania dla tego endpointu
 @api_view(['GET'])
@@ -48,4 +49,11 @@ def person_detail(request, pk):
     elif request.method == 'DELETE':
         person.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+def osoba_list(request):
+    if request.method == 'GET':
+        osoby = Osoba.objects.all()
+        serializer = OsobaSerializer(osoby, many = True)
+        return Response(serializee.data)
 

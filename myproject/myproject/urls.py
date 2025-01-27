@@ -16,9 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
+
+
+def home(request):
+    return HttpResponse("Strona główna działa poprawnie!")
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('amyapp/', include('myapp.urls'),)
+    path('myapp/', include('myapp.urls')),
 ]
