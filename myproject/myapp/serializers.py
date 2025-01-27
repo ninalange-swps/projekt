@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Person, Team, MONTHS, SHIRT_SIZES, Stanowisko, Osoba
-
+from datetime import date
 
 class PersonSerializer(serializers.Serializer):
 
@@ -21,6 +21,14 @@ class PersonSerializer(serializers.Serializer):
     # przy dodawaniu nowego obiektu możemy odwołać się do istniejącego poprzez inicjalizację nowego obiektu
     # np. team=Team({id}) lub wcześniejszym stworzeniu nowej instancji tej klasy
     team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
+
+    def validate_name(self, value):
+
+        if not value.istitle():
+            raise serializers.ValidationError(
+                "Nazwa osoby powinna rozpoczynać się wielką literą!",
+            )
+        return value
 
     # przesłonięcie metody create() z klasy serializers.Serializer
     def create(self, validated_data):
@@ -49,9 +57,10 @@ class PersonSerializer(serializers.Serializer):
 
 
 class StanowiskoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Stanowisko
-        fields = '__all__'
+    id = serializers.IntegerField(read_only=True)
+    nazwa = serializers.CharField(max_length = 80)
+    opis = serializers.CharField()
+
 
     def create(self, validated_data):
         return Stanowisko.objects.create(**validated_data)  
@@ -72,10 +81,26 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class OsobaSerializer(serializers.ModelSerializer):
+    def validate_imie(self, value):
+        if not value.isalpha():
+            raise serializers.ValidationError("Pole 'imie' musi zawierać tylko litery")
+        return value
+
+    def validate_nazwisko(self, value):
+        if not value.isalpha():
+            raise serializers.ValidationError("Pole 'nazwisko' musi zawierać tylko litery")
+        return value
+
+    def validate_data_dodania(self, value):
+        if value > date.today():
+            raise serializers.ValidationError("Pole 'data dodania' nie moze być z przyszłości")
+        return value
+            
+    
     class Meta:
         model = Osoba
         fields = ['id', 'imie', 'nazwisko', 'plec', 'stanowisko', 'data_dodania']
-        read_only_fields = ['id', 'data_dodania']
+        read_only_fields = ['id']
 
 
 
