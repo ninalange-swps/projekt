@@ -1,19 +1,16 @@
 from django.shortcuts import render
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import api_view
 from .models import Osoba, Person, Team, Stanowisko
 from .serializers import OsobaSerializer, PersonSerializer, StanowiskoSerializer
- feature_lab_07
 from django.http import HttpResponse, Http404
 import datetime
 
-=======
-from rest_framework.views import APIView
- main
 
-
-# określamy dostępne metody żądania dla tego endpointu
 @api_view(['GET'])
 def person_list(request):
     """
@@ -25,7 +22,9 @@ def person_list(request):
         return Response(serializer.data)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def person_detail(request, pk):
 
     """
@@ -46,29 +45,58 @@ def person_detail(request, pk):
         serializer = PersonSerializer(person)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
+
+@api_view(['PUT'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
+def person_update(request, pk):
+
+    """
+    :param request: obiekt DRF Request
+    :param pk: id obiektu Person
+    :return: Response (with status and/or object/s data)
+    """
+    try:
+        person = Person.objects.get(pk=pk)
+    except Person.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
         serializer = PersonSerializer(person, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])   
+def person_delete(request, pk):
+    try:
+        person = Person.objects.get(pk=pk)
+    except Person.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'DELETE':
         person.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def osoba_list(request):
     if request.method == 'GET':
-        osoby = Osoba.objects.all()
-        serializer = OsobaSerializer(osoby, many = True)
-        return Response(serializee.data)
-    if request.methof == 'POST':
+        osoby = Osoba.objects.filter(wlasciciel = request.user)
+        serializer = OsobaSerializer(osoby, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
         serializer = OsobaSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status = statys.HTTP_201_CREATED)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+            serializer.save(wlasciciel = request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['GET', 'DELETE'])
 def osoba_details(request, pk):
@@ -82,28 +110,32 @@ def osoba_details(request, pk):
         return Response(serializer.data)
     elif request.method == "DELETE":
         osoba.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
 def osoba_search(request, substring):
     osoby = Osoba.objects.filter(imie__icontains=substring) | Osoba.objects.filter(nazwisko__icontains=substring)
     serializer = OsobaSerializer(osoby, many=True)
-    return Response(serializer.data)  
+    return Response(serializer.data)
+
+
 
 @api_view(['GET', 'POST'])
 def stanowisko_list(request):
     if request.method == 'GET':
         stanowiska = Stanowisko.objects.all()
-        serializer = StanowiskoSerializer(stanowiska, many = True)
+        serializer = StanowiskoSerializer(stanowiska, many=True)
         return Response(serializer.data)
 
-    elif request.methof == 'POST':
+    elif request.method == 'POST':
         serializer = StanowiskoSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status = statys.HTTP_201_CREATED)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['GET', 'DELETE'])
 def stanowisko_details(request, pk):
@@ -113,14 +145,13 @@ def stanowisko_details(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "GET":
-        serializer = StanowiskoSerializer(osoba)
+        serializer = StanowiskoSerializer(stanowisko)
         return Response(serializer.data)
     elif request.method == "DELETE":
         stanowisko.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-feature_lab_07
 
 def welcome_view(request):
     now = datetime.datetime.now()
@@ -133,53 +164,31 @@ def welcome_view(request):
 
 
 def person_list_html(request):
-    # pobieramy wszystkie obiekty Person z bazy poprzez QuerySet
     persons = Person.objects.all()
-    return render(request,
-                  "myapp/person/list.html",
-                  {'persons': persons})
+    return render(request, "myapp/person/list.html", {'persons': persons})
+
 
 
 def person_detail_html(request, id):
-    # pobieramy konkretny obiekt Person
-    person = Person.objects.get(id=id)
     try:
-        person = Person.objects.get(pk=pk)
+        person = Person.objects.get(id=id)
     except Person.DoesNotExist:
         raise Http404("Obiekt Person o podanym Id NIE ISTNIEJE")
 
-    return render(request,
-                  "myapp/person/detail.html",
-                  {'person': person})
-=======
-class OsobaList(APIView):
-    def get(self, request):
-        osoby = Osoba.objects.all()
-        serializer = OsobaSerializer(osoby, many = True)
-        return Response(serializee.data)
+    return render(request, "myapp/person/detail.html", {'person': person})
 
-    def post(self, request):
-        serializer = OsobaSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status = statys.HTTP_201_CREATED)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
-class OsobaDetail(APIView):
+class StanowiskoMemberView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
-        try:
-            osoba = Osoba.objects.get(pk=pk)
-        except Osoba.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = OsobaSerializer(osoba)
-        return Response(serializer.data)
+        try: 
+            stanowisko = Stanowisko.objects.get(pk = pk)
+        except Stanowisko.DoesNotExist:
+            return Response(status = status.HTTP_404_NOT_FOUND)
 
-    def delete(self, request,pk):
-        try:
-            osoba = Osoba.objects.get(pk=pk)
-        except Osoba.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        osoba.delete()
-        return Response(status=status.HTTP_204_NOT_FOUND)
+        osoby = Osoba.ovjects.filter(stanowisko = stanowisko)
+        serializer = OsobaSerializer(osoby, many = True)
+        return Response(serializer.date)
 
-main
