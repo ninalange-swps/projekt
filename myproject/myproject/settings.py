@@ -56,8 +56,10 @@ ROOT_URLCONF = 'myproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'DIRS': [
+            BASE_DIR / 'templates',  # lub odpowiednia ścieżka
+        ],
+        'APP_DIRS': True,  # Jeśli używasz szablonów w aplikacjach
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -123,3 +125,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
