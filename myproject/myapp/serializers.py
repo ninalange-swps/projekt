@@ -102,5 +102,7 @@ class OsobaSerializer(serializers.ModelSerializer):
         fields = ['id', 'imie', 'nazwisko', 'plec', 'stanowisko', 'data_dodania']
         read_only_fields = ['id']
 
+ALLOWED_HOSTS = ['twojadomena.pl', 'www.twojadomena.pl']
+
 
 
