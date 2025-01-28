@@ -4,9 +4,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Osoba, Person, Team, Stanowisko
 from .serializers import OsobaSerializer, PersonSerializer, StanowiskoSerializer
+ feature_lab_07
 from django.http import HttpResponse, Http404
 import datetime
 
+=======
+from rest_framework.views import APIView
+ main
 
 
 # określamy dostępne metody żądania dla tego endpointu
@@ -116,6 +120,7 @@ def stanowisko_details(request, pk):
         return Response(status = status.HTTP_204_NO_CONTENT)
 
 
+feature_lab_07
 
 def welcome_view(request):
     now = datetime.datetime.now()
@@ -146,3 +151,35 @@ def person_detail_html(request, id):
     return render(request,
                   "myapp/person/detail.html",
                   {'person': person})
+=======
+class OsobaList(APIView):
+    def get(self, request):
+        osoby = Osoba.objects.all()
+        serializer = OsobaSerializer(osoby, many = True)
+        return Response(serializee.data)
+
+    def post(self, request):
+        serializer = OsobaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status = statys.HTTP_201_CREATED)
+        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+class OsobaDetail(APIView):
+    def get(self, request, pk):
+        try:
+            osoba = Osoba.objects.get(pk=pk)
+        except Osoba.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = OsobaSerializer(osoba)
+        return Response(serializer.data)
+
+    def delete(self, request,pk):
+        try:
+            osoba = Osoba.objects.get(pk=pk)
+        except Osoba.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        osoba.delete()
+        return Response(status=status.HTTP_204_NOT_FOUND)
+
+main
