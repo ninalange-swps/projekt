@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import osoba_list, osoba_details, person_list, person_detail, stanowisko_list, stanowisko_details
+from .views import osoba_list, osoba_details, person_list, person_detail, stanowisko_list, stanowisko_details, LogoutView, TeamDetail
 
 urlpatterns = [
     path('osoby/', views.osoba_list),
@@ -14,5 +14,7 @@ urlpatterns = [
     path('welcome/', views.welcome_view),
     path('persons_html/', views.person_list_html),
     path('person_html/<int:id>', views.person_detail_html),
-    path('stanowisko/<int:pk>/members', views.StanowiskoMemberView.as_view)
+    path('stanowisko/<int:pk>/members', views.StanowiskoMemberView.as_view),
+    path('api/logout/', views.LogoutView.as_view(), name='api_logout'),
+    path('team/<int:pk>/', views.TeamDetail.as_view, name = 'team_detail')
 ]
